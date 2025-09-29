@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Professional Stopwatch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glow-ring {
+      background: conic-gradient(#3b82f6 0deg, #6366f1 0deg);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center h-screen text-white bg-gray-800">
+
+  <div class="relative bg-white/10 backdrop-blur-xl p-10 rounded-3xl shadow-2xl flex flex-col items-center space-y-6">
+    <h1 class="text-3xl font-bold tracking-wide">⏱ Stopwatch</h1>
+
+    <!-- Circular Display -->
+    <div class="relative w-64 h-64 flex items-center justify-center">
+      <div id="ring" class="glow-ring absolute inset-0 rounded-full"></div>
+      <div class="absolute inset-[12px] bg-black/80 rounded-full flex items-center justify-center">
+        <span id="display" class="text-3xl font-mono">00:00:00.00</span>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-4">
+      <button id="startBtn" class="px-5 py-2 rounded-xl bg-green-500 hover:bg-green-600 font-semibold">Start</button>
+      <button id="pauseBtn" class="px-5 py-2 rounded-xl bg-yellow-500 hover:bg-yellow-600 font-semibold">Pause</button>
+      <button id="resetBtn" class="px-5 py-2 rounded-xl bg-red-500 hover:bg-red-600 font-semibold">Reset</button>
+      <button id="lapBtn" class="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 font-semibold">Lap</button>
+    </div>
+
+    <!-- Lap Times -->
+    <div class="w-full max-h-40 overflow-y-auto text-left text-sm font-mono space-y-1">
+      <h2 class="font-semibold">Lap Times</h2>
+      <ul id="laps" class="pl-4"></ul>
+    </div>
+  </div>
+
+  <script>
+    let startTime = 0;
+    let elapsedTime = 0;
+    let timerInterval;
+    let isRunning = false;
+
+    const display = document.getElementById("display");
+    const laps = document.getElementById("laps");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const lapBtn = document.getElementById("lapBtn");
+    const ring = document.getElementById("ring");
+
+    function formatTime(ms) {
+      let milliseconds = Math.floor((ms % 1000) / 10);
+      let seconds = Math.floor((ms / 1000) % 60);
+      let minutes = Math.floor((ms / (1000 * 60)) % 60);
+      let hours = Math.floor(ms / (1000 * 60 * 60));
+
+      return (
+        String(hours).padStart(2, "0") + ":" +
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0") + "." +
+        String(milliseconds).padStart(2, "0")
+      );
+    }
+
+    function updateDisplay() {
+      display.textContent = formatTime(elapsedTime);
+
+      // update glow ring
+      let deg = (elapsedTime / 100) % 360;
+      ring.style.background = `conic-gradient(#3b82f6 ${deg}deg, #6366f1 0deg)`;
+    }
+
+    function startTimer() {
+      if (!isRunning) {
+        startTime = Date.now() - elapsedTime;
+        timerInterval = setInterval(() => {
+          elapsedTime = Date.now() - startTime;
+          updateDisplay();
+        }, 10);
+        isRunning = true;
+      }
+    }
+
+    function pauseTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      elapsedTime = 0;
+      updateDisplay();
+      laps.innerHTML = "";
+      isRunning = false;
+    }
+
+    function recordLap() {
+      if (isRunning || elapsedTime > 0) {
+        const li = document.createElement("li");
+        li.textContent = formatTime(elapsedTime);
+        laps.appendChild(li);
+      }
+    }
+
+    startBtn.addEventListener("click", startTimer);
+    pauseBtn.addEventListener("click", pauseTimer);
+    resetBtn.addEventListener("click", resetTimer);
+    lapBtn.addEventListener("click", recordLap);
+
+    updateDisplay();
+  </script>
+</body>
+</html>
